@@ -3,6 +3,12 @@ from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
+from flask import send_from_directory
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
+
 # 애플리케이션 시작 시, 가공된 시간표 데이터를 메모리에 로드합니다.
 try:
     with open("data/classroom_schedule.json", "r", encoding="utf-8") as f:
