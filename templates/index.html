@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>HUFSpace</title>
+  <link rel="icon" href="/static/Symbol.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+        font-family: 'HUFSFont';
+        src: url('/static/한국외대체M.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-image: url('https://i.pinimg.com/736x/55/b8/5c/55b85c12335b0b2fcdcbb49acfb025ae.jpg'); /* User's newest preferred image */
+      background-size: cover;
+      background-position: center;
+      font-family: 'HUFSFont', 'Noto Sans KR', sans-serif; /* Apply the new font */
+      color: white;
+    }
+
+    /* .background-img removed */
+
+    /* .bg-blur removed */
+
+    .overlay {
+      background: transparent; /* Removed dark overlay */
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      color: rgb(0, 45, 86); /* HUFS NAVY */
+    }
+    .gold-text {
+      color: rgb(141, 113, 80); /* HUFS GOLD */
+    }
+    .semester-text {
+      display: block;
+      margin-top: 5px; /* Adjust as needed */
+    }
+
+    p.subtitle {
+      font-size: 18px;
+      margin-bottom: 20px;
+      opacity: 0.9;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      color: rgb(0, 45, 86); /* HUFS NAVY */
+      font-weight: 700; /* Make it bolder */
+    }
+
+    .search-container {
+      background: rgba(255, 255, 255, 0.95); /* Slightly less transparent */
+      color: #333;
+      border-radius: 20px; /* Slightly more rounded */
+      padding: 30px 40px; /* More padding */
+      width: 100%;
+      max-width: 900px;
+      box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.2); /* Softer, larger shadow */
+      backdrop-filter: blur(5px); /* Add a subtle blur effect */
+    }
+    
+    .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        align-items: flex-end;
+        margin-bottom: 1.5rem;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: left;
+    }
+
+    .control-group label {
+        font-weight: 700;
+        color: #444;
+        font-size: 0.9rem;
+        padding-left: 5px;
+    }
+
+    select, button {
+      padding: 14px 18px; /* More padding */
+      border-radius: 10px; /* Slightly more rounded */
+      border: 1px solid #e0e0e0; /* Lighter border */
+      font-size: 17px; /* Slightly larger font */
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Subtle shadow */
+      background-color: #ffffff; /* Ensure white background for selects */
+      color: #333;
+    }
+
+    button#search-btn { /* Target specific search button */
+      background: linear-gradient(45deg, rgb(0, 45, 86), rgb(0, 60, 110)); /* HUFS NAVY gradient */
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease; /* Smoother transition */
+      border: none;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0, 45, 86, 0.4); /* More prominent shadow */
+      padding: 15px 20px; /* More padding */
+      border-radius: 12px; /* More rounded */
+      font-size: 18px; /* Larger font */
+      font-family: 'HUFSFont', 'Noto Sans KR', sans-serif; /* Apply the new font */
+    }
+
+    button#search-btn:hover {
+      background: linear-gradient(45deg, rgb(0, 60, 110), rgb(0, 45, 86)); /* Reverse gradient on hover */
+      box-shadow: 0 6px 20px rgba(0, 45, 86, 0.6); /* Enhanced shadow on hover */
+      transform: translateY(-2px); /* Subtle lift effect */
+    }
+
+    .building-card {
+        background-color: #f8f8f8; /* Lighter background */
+        border: 1px solid #eee; /* Softer border */
+        border-radius: 12px; /* More rounded */
+        padding: 15px 10px; /* Adjusted padding */
+        cursor: pointer;
+        transition: all 0.3s ease; /* Smoother transition */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 calc(33.33% - 0.66rem); /* Three columns, accounting for gap */
+        max-width: calc(33.33% - 0.66rem); /* Ensure max width for three columns */
+        white-space: nowrap; /* Prevent text wrapping within buttons */
+        text-align: center;
+        color: #555; /* Softer text color */
+        font-weight: 600; /* Slightly bolder font */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Softer shadow */
+    }
+
+    .building-card:hover {
+        background-color: #e8e8e8; /* Lighter hover background */
+        box-shadow: 0 6px 15px rgba(0,0,0,0.12); /* Enhanced hover shadow */
+        transform: translateY(-2px); /* Subtle lift effect */
+    }
+
+    .building-card.selected {
+        background: linear-gradient(45deg, rgb(0, 45, 86), rgb(0, 60, 110)); /* HUFS NAVY gradient */
+        color: white;
+        border-color: rgb(0, 45, 86); /* Matching border color */
+        box-shadow: 0 4px 15px rgba(0, 45, 86, 0.4); /* Prominent shadow */
+    }
+    #building-checkboxes {
+        display: flex;
+        flex-wrap: wrap; /* Allow items to wrap to the next line */
+        gap: 1rem;
+        margin-top: 1rem;
+        /* Removed overflow-x: auto as it's no longer needed for horizontal scrolling */
+        justify-content: center; /* Center items in the container */
+        padding-bottom: 5px; /* Add some padding for scrollbar */
+    }
+    #results {
+        /* Removed grid properties */
+        display: flex; /* To stack floor-rows vertically */
+        flex-direction: column;
+        align-items: center; /* Center the floor-rows */
+        margin-top: 2rem; /* Add some top margin */
+        width: 100%;
+        max-width: 900px; /* Match search container width */
+    }
+    .floor-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 280px); /* Changed */
+        gap: 1.5rem;
+        margin-top: 1rem;
+        width: 100%;
+        max-width: 900px;
+        justify-content: center; /* Added */
+    }
+    .result-item {
+        background: #ffffff; /* Clean white background */
+        color: #333;
+        padding: 1.2rem 1.8rem; /* More padding */
+        border-radius: 12px; /* More rounded */
+        /* margin-bottom: 1rem; Removed, replaced by grid gap */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08); /* Softer, larger shadow */
+        transition: all 0.3s ease; /* Smoother transition */
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    .result-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12); /* Enhanced hover shadow */
+    }
+    .classroom-name {
+        font-weight: 700;
+        font-size: 1.3rem; /* Slightly larger font */
+        color: rgb(0, 45, 86); /* HUFS NAVY */
+        margin-bottom: 0.6rem;
+    }
+    .next-class {
+        font-size: 1rem; /* Slightly larger font */
+        color: #666; /* Softer text color */
+        text-align: left;
+        width: 100%;
+    }
+    .next-class-time {
+        font-weight: 700;
+        color: rgb(0, 100, 180); /* A lighter blue that complements HUFS NAVY */
+    }
+    .floor-separator {
+        height: 1px;
+        margin-top: 2rem;
+        margin-bottom: 1.5rem;
+        border: 0;
+        background-image: linear-gradient(to right, rgba(141, 113, 80, 0), rgba(141, 113, 80, 0.75), rgba(141, 113, 80, 0));
+        width: 100%;
+    }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay"></div>
+  <div class="content">
+    <h1>HUFS<span class="gold-text">pace</span></h1>
+    <p class="subtitle">현재 비어 있는 강의실을 한눈에 확인하세요.<br><span class="semester-text">[2025 - 2학기]</span></p>
+
+    <div class="search-container">
+        <div class="controls">
+            <div class="control-group">
+                <label for="day-select">공강 요일을 선택해주세요.</label>
+                <select id="day-select">
+                    <option value="월">월요일</option>
+                    <option value="화">화요일</option>
+                    <option value="수">수요일</option>
+                    <option value="목">목요일</option>
+                    <option value="금">금요일</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>공간 시간대를 입력해주세요.</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="start-hour-select" aria-label="시작 시간"></select>
+                    <select id="start-minute-select" aria-label="시작 분"></select>
+                    <span>~</span>
+                    <select id="end-hour-select" aria-label="끝나는 시간"></select>
+                    <select id="end-minute-select" aria-label="끝나는 분"></select>
+                </div>
+            </div>
+        </div>
+        <div id="building-controls" class="control-group" style="margin-bottom: 1.5rem;">
+            <label>검색할 건물을 선택해주세요. (선택하지 않으면 전체 건물이 선택됩니다.)</label>
+            <div id="building-checkboxes">
+                <!-- 건물 체크박스는 JavaScript로 생성 -->
+            </div>
+        </div>
+        <button id="search-btn">빈 강의실 찾기</button>
+    </div>
+    <div id="results">
+        <!-- 검색 결과가 여기에 표시됩니다 -->
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const daySelect = document.getElementById('day-select');
+        const startHourSelect = document.getElementById('start-hour-select');
+        const startMinuteSelect = document.getElementById('start-minute-select');
+        const endHourSelect = document.getElementById('end-hour-select');
+        const endMinuteSelect = document.getElementById('end-minute-select');
+        const searchBtn = document.getElementById('search-btn');
+        const buildingCheckboxesDiv = document.getElementById('building-checkboxes');
+        const resultsDiv = document.getElementById('results');
+
+        const generateHourOptions = (selectElement) => {
+            for (let h = 9; h <= 20; h++) {
+                const option = document.createElement('option');
+                option.value = String(h).padStart(2, '0');
+                option.textContent = `${String(h).padStart(2, '0')}시`;
+                selectElement.appendChild(option);
+            }
+        };
+
+        const generateMinuteOptions = (selectElement) => {
+            for (let m = 0; m < 60; m += 10) {
+                const option = document.createElement('option');
+                option.value = String(m).padStart(2, '0');
+                option.textContent = `${String(m).padStart(2, '0')}분`;
+                selectElement.appendChild(option);
+            }
+        };
+
+        generateHourOptions(startHourSelect);
+        generateMinuteOptions(startMinuteSelect);
+        generateHourOptions(endHourSelect);
+        generateMinuteOptions(endMinuteSelect);
+
+        startHourSelect.value = '10';
+        startMinuteSelect.value = '00';
+        endHourSelect.value = '11';
+        endMinuteSelect.value = '00';
+
+        const loadBuildings = async () => {
+            const buildings = ["교수학습개발원", "대학원", "법학관", "본관", "사이버관", "사회과학관", "인문과학관"];
+            buildingCheckboxesDiv.innerHTML = ''; // Clear previous content
+
+            buildings.forEach(building => {
+                const card = document.createElement('div');
+                card.className = 'building-card';
+                card.dataset.building = building;
+
+                const name = document.createElement('div');
+                name.textContent = building;
+
+                card.appendChild(name);
+
+                card.addEventListener('click', () => {
+                    card.classList.toggle('selected');
+                });
+                buildingCheckboxesDiv.appendChild(card);
+            });
+        };
+        loadBuildings();
+
+        searchBtn.addEventListener('click', async () => {
+            const day = daySelect.value;
+            const startTime = `${startHourSelect.value}:${startMinuteSelect.value}`;
+            const endTime = `${endHourSelect.value}:${endMinuteSelect.value}`;
+
+            if (startTime >= endTime) {
+                alert("공강 시간대를 올바르게 입력해주세요.");
+                return;
+            }
+            
+            const selectedBuildings = Array.from(document.querySelectorAll('.building-card.selected'))
+                                            .map(card => card.dataset.building)
+                                            .join(',');
+
+            resultsDiv.innerHTML = '<div class="loading-spinner"></div>';
+
+            try {
+                const url = `/find?day=${day}&startTime=${startTime}&endTime=${endTime}&buildings=${selectedBuildings}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                resultsDiv.innerHTML = ''; 
+
+                if (data.length === 0) {
+                    alert("해당 건물에 빈 강의실이 존재하지 않습니다.");
+                    resultsDiv.innerHTML = '';
+                } else {
+                    // Sort data by classroom number to ensure correct grouping and ordering
+                    data.sort((a, b) => {
+                        const roomA = parseInt(a.classroom);
+                        const roomB = parseInt(b.classroom);
+                        return roomA - roomB;
+                    });
+
+                    let currentFloor = null;
+                    let currentFloorRow = null; // To hold the current .floor-row container
+
+                    data.forEach(room => {
+                        const roomName = room.classroom; // e.g., "사회과학관 201호"
+                        const match = roomName.match(/\s(\d+)/);
+                        let floor = 'N/A'; // Default floor if no number is found
+                        if (match && match[1]) {
+                            floor = match[1].charAt(0);
+                        }
+
+                        // If a new floor is encountered, create a new floor-row container
+                        if (floor !== currentFloor) {
+                            currentFloor = floor;
+                            // Only add separator if it's not the very first floor
+                            if (resultsDiv.children.length > 0) {
+                                const floorSeparator = document.createElement('div');
+                                floorSeparator.className = 'floor-separator'; // New class for visual separation
+                                resultsDiv.appendChild(floorSeparator);
+                            }
+                            
+                            currentFloorRow = document.createElement('div');
+                            currentFloorRow.className = 'floor-row';
+                            resultsDiv.appendChild(currentFloorRow);
+                        }
+
+                        // Create individual result-item for each classroom and append to currentFloorRow
+                        const item = document.createElement('div');
+                        item.className = 'result-item';
+                        
+                        const nameSpan = document.createElement('div');
+                        nameSpan.className = 'classroom-name';
+                        nameSpan.textContent = room.classroom;
+
+                        const nextClassDiv = document.createElement('div');
+                        nextClassDiv.className = 'next-class';
+                        nextClassDiv.innerHTML = `다음 강의: <span class="next-class-time">${room.next_class}</span>`;
+
+                        item.appendChild(nameSpan);
+                        item.appendChild(nextClassDiv);
+                        currentFloorRow.appendChild(item); // Append to the current floor's row
+                    });
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultsDiv.innerHTML = '<p class="no-results">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+            }
+        });
+    });
+  </script>
+</body>
+</html>
