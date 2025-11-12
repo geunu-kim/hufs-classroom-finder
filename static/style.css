@@ -1,0 +1,15 @@
+@font-face {
+  font-family: 'HUFS';
+  src: url('/static/한국외대체M.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'HUFS', sans-serif;
+  background-color: #fdfdfd;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+
