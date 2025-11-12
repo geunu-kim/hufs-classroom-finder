@@ -2,6 +2,11 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    # 기본 주소에 접속했을 때 login 페이지를 보여줌
+    return render_template('login.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -12,7 +17,4 @@ def login():
     return render_template('login.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=8080)
-
-    
-
+    app.run(debug=True)
