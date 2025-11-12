@@ -1,12 +1,12 @@
 @font-face {
-  font-family: 'HUFS';
-  src: url('/static/한국외대체M.ttf') format('truetype');
+  font-family: 'HUFSFont';
+  src: url('/static/HUFSFont.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 body {
-  font-family: 'HUFS', sans-serif;
+  font-family: 'HUFSFont', 'Noto Sans KR', sans-serif;
   background-color: #fdfdfd;
   color: #222;
   margin: 0;
