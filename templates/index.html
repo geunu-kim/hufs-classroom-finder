@@ -487,7 +487,7 @@
                         item.addEventListener('click', () => {
                             Kakao.Link.sendDefault({
                                 objectType: 'text',
-                                text: `[HUFSpace] ${room.classroom} 지금 비어있어요!\n다음 강의: ${room.next_class} 📚`,
+                                text: `[HUFSpace]\n${room.classroom} 지금 비어있어요!\n다음 강의: ${room.next_class} 📚`,
                                 link: {
                                     mobileWebUrl: 'https://hufspace.onrender.com/',
                                     webUrl: 'https://hufspace.onrender.com/',
@@ -503,10 +503,20 @@
                     shareAllBtn.style.display = 'block';
                     shareAllBtn.addEventListener('click', () => {
                         const buildingText = selectedBuildings ? `${selectedBuildings} 기준` : '전체 건물 기준';
-                        const classroomList = data.map(room => room.classroom).join(', ');
+                        let classroomList = '';
+                        for (let i = 0; i < data.length; i++) {
+                            classroomList += data[i].classroom;
+                            if (i < data.length - 1) {
+                                if ((i + 1) % 2 === 0) {
+                                    classroomList += ',\n';
+                                } else {
+                                    classroomList += ', ';
+                                }
+                            }
+                        }
                         Kakao.Link.sendDefault({
                             objectType: 'text',
-                            text: `[HUFSpace]\n${startTime}~${endTime} 공강\n${buildingText} 이용 가능한 강의실 ${data.length}개\n${classroomList} 📚`,
+                            text: `[HUFSpace]\n${startTime}~${endTime} 공강\n${buildingText} 이용 가능한 강의실 ${data.length}개:\n${classroomList} 📚`,
                             link: {
                                 mobileWebUrl: 'https://hufspace.onrender.com/',
                                 webUrl: 'https://hufspace.onrender.com/',
