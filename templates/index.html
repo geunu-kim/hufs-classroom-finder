@@ -246,6 +246,16 @@
             transform: translateY(0);
         }
     }
+    .footer {
+      color: black;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+      margin-top: 40px; /* Add some space above the footer */
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -290,8 +300,19 @@
         </div>
         <button id="search-btn">빈 강의실 찾기</button>
     </div>
+    <ins class="kakao_ad_area" style="display:none;"
+    data-ad-unit = "DAN-lHBg2akHRG7kZiQ3"
+    data-ad-width = "320"
+    data-ad-height = "50"></ins>
     <div id="results">
         <!-- 검색 결과가 여기에 표시됩니다 -->
+    </div>
+    <ins class="kakao_ad_area" style="display:none;"
+    data-ad-unit = "DAN-GsHTuBiNm6Sz7qAw"
+    data-ad-width = "300"
+    data-ad-height = "250"></ins>
+    <div class="footer">
+      <p>&copy; 2025 리얼라이트 Realright. All Rights Reserved.</p>
     </div>
   </div>
 
@@ -441,5 +462,6 @@
         });
     });
   </script>
+  <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
 </body>
 </html>
