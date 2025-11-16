@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
   <meta charset="UTF-8">
   <title>HUFSpace</title>
   <link rel="icon" href="/static/Symbol.png" type="image/png">
@@ -82,6 +83,7 @@
       max-width: 900px;
       box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.2); /* Softer, larger shadow */
       backdrop-filter: blur(5px); /* Add a subtle blur effect */
+      margin-bottom: 20px; /* Added spacing */
     }
     
     .controls {
@@ -247,6 +249,26 @@
             transform: translateY(0);
         }
     }
+    #share-all-btn {
+      margin-top: 20px;
+      margin-bottom: 20px; /* Added spacing */
+      padding: 15px 20px;
+      border-radius: 12px;
+      background: #FEE500;
+      color: #000000;
+      font-weight: 700;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      width: 100%;
+      max-width: 900px;
+    }
+    #share-all-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
     .footer {
       color: black;
       text-align: center;
@@ -265,6 +287,9 @@
 </head>
 
 <body>
+  <script>
+    Kakao.init('7c1ad92f3918941cd8d0e30a84325209');
+  </script>
   <div class="overlay"></div>
   <div class="content">
     <h1>HUFS<span class="gold-text">pace</span></h1>
@@ -308,12 +333,16 @@
     <div id="results">
         <!-- 검색 결과가 여기에 표시됩니다 -->
     </div>
+    <button id="share-all-btn" style="display: none;"><img src="/static/kakaotalk.png" alt="KakaoTalk Share" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">전체 결과 공유하기</button>
     <ins class="kakao_ad_area" style="display:none;"
     data-ad-unit = "DAN-GsHTuBiNm6Sz7qAw"
     data-ad-width = "300"
     data-ad-height = "250"></ins>
     <div class="footer">
       <p>&copy; 2025 리얼라이트 Realright. All Rights Reserved.</p>
+      <div style="margin-top: 10px; max-width: 200px; margin-left: auto; margin-right: auto;">
+        <img src="/static/kakao.png" alt="Kakao Logo" style="width: 100%; height: auto;">
+      </div>
     </div>
   </div>
 
@@ -405,6 +434,7 @@
                 if (data.length === 0) {
                     alert("해당 건물에 빈 강의실이 존재하지 않습니다.");
                     resultsDiv.innerHTML = '';
+                    document.getElementById('share-all-btn').style.display = 'none';
                 } else {
                     // Sort data by classroom number to ensure correct grouping and ordering
                     data.sort((a, b) => {
@@ -445,7 +475,7 @@
                         
                         const nameSpan = document.createElement('div');
                         nameSpan.className = 'classroom-name';
-                        nameSpan.textContent = room.classroom;
+                        nameSpan.innerHTML = `${room.classroom} <img src="/static/kakaotalk.png" alt="KakaoTalk Share" style="width: 18px; height: 18px; vertical-align: middle; margin-left: 5px;">`;
 
                         const nextClassDiv = document.createElement('div');
                         nextClassDiv.className = 'next-class';
@@ -453,7 +483,35 @@
 
                         item.appendChild(nameSpan);
                         item.appendChild(nextClassDiv);
+
+                        item.addEventListener('click', () => {
+                            Kakao.Link.sendDefault({
+                                objectType: 'text',
+                                text: `[HUFSpace] ${room.classroom} 지금 비어있어요!\n다음 강의: ${room.next_class} 📚`,
+                                link: {
+                                    mobileWebUrl: 'https://hufspace.onrender.com/',
+                                    webUrl: 'https://hufspace.onrender.com/',
+                                },
+                            });
+                        });
+
                         currentFloorRow.appendChild(item); // Append to the current floor's row
+                    });
+
+                    // Show the share all button
+                    const shareAllBtn = document.getElementById('share-all-btn');
+                    shareAllBtn.style.display = 'block';
+                    shareAllBtn.addEventListener('click', () => {
+                        const buildingText = selectedBuildings ? `${selectedBuildings} 기준` : '전체 건물 기준';
+                        const classroomList = data.map(room => room.classroom).join(', ');
+                        Kakao.Link.sendDefault({
+                            objectType: 'text',
+                            text: `[HUFSpace]\n${startTime}~${endTime} 공강\n${buildingText} 이용 가능한 강의실 ${data.length}개\n${classroomList} 📚`,
+                            link: {
+                                mobileWebUrl: 'https://hufspace.onrender.com/',
+                                webUrl: 'https://hufspace.onrender.com/',
+                            },
+                        });
                     });
                 }
             } catch (error) {
