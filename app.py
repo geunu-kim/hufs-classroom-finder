@@ -1,7 +1,12 @@
 import json
+import time
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
+
+# 실시간 사용 인원 저장을 위한 딕셔너리
+# { "강의실이름": [(타임스탬프, 인원수), ...], ... }
+occupancy_data = {}
 
 from flask import send_from_directory
 
@@ -63,15 +68,56 @@ def get_buildings():
     
     return jsonify(sorted(list(unique_buildings)))
 
+@app.route('/occupancy', methods=['POST'])
+def update_occupancy():
+    """
+    실시간 강의실 사용 인원 정보를 업데이트하는 API. (합산 모델)
+    """
+    data = request.get_json()
+    classroom = data.get('classroom')
+    count_range = data.get('count_range')
+
+    if not classroom or not count_range:
+        return jsonify({"error": "강의실과 인원 범위 정보가 필요합니다."}), 400
+
+    # 범위 문자열을 대표 숫자로 변환
+    count_map = {
+        "1명": 1,
+        "2명": 2,
+        "3명": 3,
+        "4명": 4,
+        "5명 이상": 5 # 5명 이상은 5로 처리
+    }
+    count = count_map.get(count_range)
+    if count is None:
+        return jsonify({"error": "잘못된 인원 범위입니다."}), 400
+
+    now = time.time()
+    
+    if classroom not in occupancy_data:
+        occupancy_data[classroom] = []
+
+    # 새 인원 정보 추가
+    occupancy_data[classroom].append((now, count))
+    
+    # 45분이 지난 데이터 정리
+    valid_entries = [(ts, c) for ts, c in occupancy_data[classroom] if now - ts < 2700]
+    occupancy_data[classroom] = valid_entries
+    
+    # 현재 유효한 총 인원수 계산
+    total_occupancy = sum(c for ts, c in valid_entries)
+
+    return jsonify({"success": True, "total_occupancy": total_occupancy})
+
 @app.route('/find', methods=['GET'])
 def find_empty_classrooms():
     """
     특정 요일, 시간 범위, 건물에 비어있는 강의실 목록을 반환하는 API.
+    실시간 사용 인원 정보를 포함합니다.
     """
     day = request.args.get('day')
     start_time = request.args.get('startTime')
     end_time = request.args.get('endTime')
-    # 건물 목록은 콤마로 구분된 문자열로 받음
     buildings = request.args.get('buildings')
 
     if not all([day, start_time, end_time]):
@@ -83,7 +129,6 @@ def find_empty_classrooms():
     if start_period is None or end_period is None or start_period > end_period:
         return jsonify({"error": "시간 입력이 잘못되었습니다."}), 400
 
-    # 사용자가 선택한 시간 범위에 포함되는 모든 교시
     required_periods = set(range(start_period, end_period + 1))
 
     if not schedule_data:
@@ -91,44 +136,46 @@ def find_empty_classrooms():
 
     selected_buildings = buildings.split(',') if buildings else []
     empty_classrooms = []
+    now = time.time()
 
     for room, schedule in schedule_data.items():
-        # 1. 건물 필터링
         if selected_buildings:
-            # room 이름이 선택된 건물 이름 중 하나로 시작하는지 확인
             if not any(room.startswith(b) for b in selected_buildings):
                 continue
 
-        # 2. 시간 필터링
         scheduled_periods = set(schedule.get(day, []))
-        # 사용자가 원하는 시간에 수업이 하나라도 있으면 제외
         if not required_periods.isdisjoint(scheduled_periods):
             continue
             
-        # 3. 다음 수업 시간 계산
         next_class_period = "없음"
-        # 사용자가 선택한 종료 교시 이후의 수업들
         upcoming_classes = [p for p in scheduled_periods if p > end_period]
         if upcoming_classes:
             next_period = min(upcoming_classes)
             next_class_period = f"{next_period}교시 ({PERIOD_TIMES.get(next_period, '')})"
 
+        # 실시간 사용 인원 계산
+        total_occupancy = 0
+        if room in occupancy_data:
+            # 45분이 지나지 않은 유효한 데이터만 필터링하고, 만료된 데이터는 정리
+            valid_entries = [(ts, c) for ts, c in occupancy_data[room] if now - ts < 2700] # 45분 = 2700초
+            occupancy_data[room] = valid_entries
+            total_occupancy = sum(c for ts, c in valid_entries)
+
         empty_classrooms.append({
             "classroom": room,
-            "next_class": next_class_period
+            "next_class": next_class_period,
+            "occupancy": total_occupancy
         })
     
-    # 층수, 호수 기준으로 오름차순 정렬
     def get_sort_key(room):
         import re
-        # "사회과학관 201호" -> "201"
         match = re.search(r' (\d+)', room['classroom'])
         if match:
             room_num_str = match.group(1)
-            floor = int(room_num_str[0]) # 1차 정렬 기준: 층수
-            room_num = int(room_num_str) # 2차 정렬 기준: 전체 호수
+            floor = int(room_num_str[0])
+            room_num = int(room_num_str)
             return (floor, room_num)
-        return (0, 0) # 숫자가 없는 강의실은 맨 위로
+        return (0, 0)
 
     sorted_classrooms = sorted(empty_classrooms, key=get_sort_key)
     

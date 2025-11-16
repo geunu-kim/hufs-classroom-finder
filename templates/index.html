@@ -283,6 +283,105 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    /* Styles for the new occupancy popup */
+    .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .popup {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        color: #333;
+    }
+    .popup h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+    .popup p {
+        margin-bottom: 25px;
+        font-size: 1rem;
+        color: #666;
+    }
+    .popup-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .popup-option {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .popup-option.selected {
+        background-color: rgb(0, 45, 86);
+        color: white;
+        border-color: rgb(0, 45, 86);
+    }
+    .popup-option.span-two-columns {
+        grid-column: span 2;
+    }
+    .popup-submit {
+        width: 100%;
+        padding: 15px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(45deg, rgb(0, 45, 86), rgb(0, 60, 110));
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .popup-submit:hover {
+        background: linear-gradient(45deg, rgb(0, 60, 110), rgb(0, 45, 86));
+    }
+    .occupancy-info {
+        font-size: 1rem;
+        color: #666;
+        text-align: left;
+        width: 100%;
+        margin-top: 0.6rem;
+    }
+    .occupancy-count {
+        font-weight: 700;
+        color: rgb(0, 100, 180); /* Same as .next-class-time */
+    }
+    .use-classroom-btn {
+        margin-top: 1rem;
+        padding: 10px 15px;
+        width: 100%;
+        border-radius: 8px;
+        border: none;
+        background-color: #eef5ff;
+        color: #0056b3;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .use-classroom-btn:hover {
+        background-color: #dbeaff;
+    }
   </style>
 </head>
 
@@ -340,10 +439,33 @@
     data-ad-height = "250"></ins>
     <div class="footer">
       <p>&copy; 2025 리얼라이트 Realright. All Rights Reserved.</p>
-      <div style="margin-top: 10px; max-width: 200px; margin-left: auto; margin-right: auto;">
-        <img src="/static/kakao.png" alt="Kakao Logo" style="width: 100%; height: auto;">
-      </div>
+
     </div>
+  </div>
+
+  <!-- Occupancy Popup -->
+  <div id="occupancy-popup" class="popup-overlay">
+      <div class="popup">
+          <h2>현재 몇 명이 사용 예정인가요?</h2>
+          <p>여러분의 입력이 더 정확한 빈 강의실 정보를 만드는 데<br>큰 도움이 됩니다!</p>
+          <div class="popup-options">
+              <div class="popup-option" data-range="1명">1명</div>
+              <div class="popup-option" data-range="2명">2명</div>
+              <div class="popup-option" data-range="3명">3명</div>
+              <div class="popup-option" data-range="4명">4명</div>
+              <div class="popup-option span-two-columns" data-range="5명 이상">5명 이상</div>
+          </div>
+          <button id="popup-submit-btn" class="popup-submit">인원 제출하기</button>
+      </div>
+  </div>
+
+  <!-- Thank You Popup -->
+  <div id="thanks-popup" class="popup-overlay">
+      <div class="popup">
+          <h2>기여해주셔서 감사합니다!</h2>
+          <p>덕분에 HUFSpace가 더 정확해졌어요!<br>다른 학우분들에게도 큰 도움이 됩니다 😊</p>
+          <button id="thanks-popup-close-btn" class="popup-submit">확인</button>
+      </div>
   </div>
 
   <script>
@@ -356,6 +478,17 @@
         const searchBtn = document.getElementById('search-btn');
         const buildingCheckboxesDiv = document.getElementById('building-checkboxes');
         const resultsDiv = document.getElementById('results');
+
+        // Popup elements
+        const occupancyPopup = document.getElementById('occupancy-popup');
+        const popupSubmitBtn = document.getElementById('popup-submit-btn');
+        const popupOptions = document.querySelectorAll('.popup-option');
+        const thanksPopup = document.getElementById('thanks-popup');
+        const thanksPopupCloseBtn = document.getElementById('thanks-popup-close-btn');
+
+        let currentClassroom = null;
+        let selectedRange = null;
+        let lastSubmittedTotal = null;
 
         const generateHourOptions = (selectElement) => {
             for (let h = 9; h <= 20; h++) {
@@ -387,26 +520,93 @@
 
         const loadBuildings = async () => {
             const buildings = ["교수학습개발원", "대학원", "법학관", "본관", "사이버관", "사회과학관", "인문과학관"];
-            buildingCheckboxesDiv.innerHTML = ''; // Clear previous content
-
+            buildingCheckboxesDiv.innerHTML = '';
             buildings.forEach(building => {
                 const card = document.createElement('div');
                 card.className = 'building-card';
                 card.dataset.building = building;
-
-                const name = document.createElement('div');
-                name.textContent = building;
-
-                card.appendChild(name);
-
-                card.addEventListener('click', () => {
-                    card.classList.toggle('selected');
-                });
+                card.textContent = building;
+                card.addEventListener('click', () => card.classList.toggle('selected'));
                 buildingCheckboxesDiv.appendChild(card);
             });
         };
         loadBuildings();
 
+        // --- Popup Logic ---
+        const openPopup = (classroom) => {
+            currentClassroom = classroom;
+            selectedRange = null;
+            popupOptions.forEach(opt => opt.classList.remove('selected'));
+            occupancyPopup.style.display = 'flex';
+        };
+
+        const closePopup = () => {
+            occupancyPopup.style.display = 'none';
+        };
+
+        const openThanksPopup = () => {
+            thanksPopup.style.display = 'flex';
+        };
+
+        const closeThanksPopup = () => {
+            thanksPopup.style.display = 'none';
+            if (currentClassroom && lastSubmittedTotal !== null) {
+                const roomElement = document.querySelector(`[data-classroom-name="${currentClassroom}"]`);
+                if (roomElement) {
+                    const occupancyCountSpan = roomElement.querySelector('.occupancy-count');
+                    if (occupancyCountSpan) {
+                        occupancyCountSpan.textContent = lastSubmittedTotal;
+                    }
+                }
+            }
+        };
+
+        popupOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                popupOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedRange = option.dataset.range;
+            });
+        });
+
+        popupSubmitBtn.addEventListener('click', async () => {
+            if (!currentClassroom || !selectedRange) {
+                alert("인원 범위를 선택해주세요.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/occupancy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        classroom: currentClassroom,
+                        count_range: selectedRange
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    lastSubmittedTotal = data.total_occupancy;
+                    closePopup();
+                    openThanksPopup();
+                } else {
+                    alert("오류가 발생했습니다: " + data.error);
+                }
+            } catch (error) {
+                console.error('Occupancy update error:', error);
+                alert("데이터 업데이트 중 오류가 발생했습니다.");
+            }
+        });
+
+        occupancyPopup.addEventListener('click', (e) => {
+            if (e.target === occupancyPopup) closePopup();
+        });
+        thanksPopup.addEventListener('click', (e) => {
+            if (e.target === thanksPopup) closeThanksPopup();
+        });
+        thanksPopupCloseBtn.addEventListener('click', closeThanksPopup);
+
+        // --- Search Logic ---
         searchBtn.addEventListener('click', async () => {
             const day = daySelect.value;
             const startTime = `${startHourSelect.value}:${startMinuteSelect.value}`;
@@ -436,55 +636,84 @@
                     resultsDiv.innerHTML = '';
                     document.getElementById('share-all-btn').style.display = 'none';
                 } else {
-                    // Sort data by classroom number to ensure correct grouping and ordering
                     data.sort((a, b) => {
-                        const roomA = parseInt(a.classroom);
-                        const roomB = parseInt(b.classroom);
+                        const roomA = parseInt(a.classroom.match(/\d+/));
+                        const roomB = parseInt(b.classroom.match(/\d+/));
                         return roomA - roomB;
                     });
 
                     let currentFloor = null;
-                    let currentFloorRow = null; // To hold the current .floor-row container
+                    let currentFloorRow = null;
 
                     data.forEach(room => {
-                        const roomName = room.classroom; // e.g., "사회과학관 201호"
+                        const roomName = room.classroom;
                         const match = roomName.match(/\s(\d+)/);
-                        let floor = 'N/A'; // Default floor if no number is found
+                        let floor = 'N/A';
                         if (match && match[1]) {
                             floor = match[1].charAt(0);
                         }
 
-                        // If a new floor is encountered, create a new floor-row container
                         if (floor !== currentFloor) {
                             currentFloor = floor;
-                            // Only add separator if it's not the very first floor
                             if (resultsDiv.children.length > 0) {
-                                const floorSeparator = document.createElement('div');
-                                floorSeparator.className = 'floor-separator'; // New class for visual separation
+                                const floorSeparator = document.createElement('hr');
+                                floorSeparator.className = 'floor-separator';
                                 resultsDiv.appendChild(floorSeparator);
                             }
-                            
                             currentFloorRow = document.createElement('div');
                             currentFloorRow.className = 'floor-row';
                             resultsDiv.appendChild(currentFloorRow);
                         }
 
-                        // Create individual result-item for each classroom and append to currentFloorRow
                         const item = document.createElement('div');
                         item.className = 'result-item';
-                        
+                        item.dataset.classroomName = room.classroom;
+
+                        const nameContainer = document.createElement('div');
+                        nameContainer.style.display = 'flex';
+                        nameContainer.style.justifyContent = 'space-between';
+                        nameContainer.style.width = '100%';
+                        nameContainer.style.alignItems = 'center';
+
                         const nameSpan = document.createElement('div');
                         nameSpan.className = 'classroom-name';
-                        nameSpan.innerHTML = `${room.classroom} <img src="/static/kakaotalk.png" alt="KakaoTalk Share" style="width: 18px; height: 18px; vertical-align: middle; margin-left: 5px;">`;
+                        nameSpan.textContent = room.classroom;
+
+                        const shareButton = document.createElement('img');
+                        shareButton.src = "/static/kakaotalk.png";
+                        shareButton.alt = "KakaoTalk Share";
+                        shareButton.style.width = "24px";
+                        shareButton.style.height = "24px";
+                        shareButton.style.cursor = "pointer";
+                        
+                        nameContainer.appendChild(nameSpan);
+                        nameContainer.appendChild(shareButton);
 
                         const nextClassDiv = document.createElement('div');
                         nextClassDiv.className = 'next-class';
                         nextClassDiv.innerHTML = `다음 강의: <span class="next-class-time">${room.next_class}</span>`;
 
-                        item.appendChild(nameSpan);
-                        item.appendChild(nextClassDiv);
+                        const occupancyDiv = document.createElement('div');
+                        occupancyDiv.className = 'occupancy-info';
+                        occupancyDiv.innerHTML = `지금 이용 중: <span class="occupancy-count">${room.occupancy || 0}</span>명`;
 
-                        item.addEventListener('click', () => {
+                        const useButton = document.createElement('button');
+                        useButton.className = 'use-classroom-btn';
+                        useButton.textContent = '이 강의실 사용하기';
+
+                        item.appendChild(nameContainer);
+                        item.appendChild(nextClassDiv);
+                        item.appendChild(occupancyDiv);
+                        item.appendChild(useButton);
+
+                        // Event listeners
+                        useButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            openPopup(room.classroom);
+                        });
+
+                        shareButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
                             Kakao.Link.sendDefault({
                                 objectType: 'text',
                                 text: `[HUFSpace]\n${room.classroom} 지금 비어있어요!\n다음 강의: ${room.next_class} 📚`,
@@ -495,25 +724,14 @@
                             });
                         });
 
-                        currentFloorRow.appendChild(item); // Append to the current floor's row
+                        currentFloorRow.appendChild(item);
                     });
 
-                    // Show the share all button
                     const shareAllBtn = document.getElementById('share-all-btn');
                     shareAllBtn.style.display = 'block';
-                    shareAllBtn.addEventListener('click', () => {
+                    shareAllBtn.onclick = () => {
                         const buildingText = selectedBuildings ? `${selectedBuildings} 기준` : '전체 건물 기준';
-                        let classroomList = '';
-                        for (let i = 0; i < data.length; i++) {
-                            classroomList += data[i].classroom;
-                            if (i < data.length - 1) {
-                                if ((i + 1) % 2 === 0) {
-                                    classroomList += ',\n';
-                                } else {
-                                    classroomList += ', ';
-                                }
-                            }
-                        }
+                        let classroomList = data.map(r => r.classroom).join(', ');
                         Kakao.Link.sendDefault({
                             objectType: 'text',
                             text: `[HUFSpace]\n${startTime}~${endTime} 공강\n${buildingText} 이용 가능한 강의실 ${data.length}개:\n${classroomList} 📚`,
@@ -522,7 +740,7 @@
                                 webUrl: 'https://hufspace.onrender.com/',
                             },
                         });
-                    });
+                    };
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
