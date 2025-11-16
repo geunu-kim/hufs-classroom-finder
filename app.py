@@ -5,6 +5,10 @@ app = Flask(__name__)
 
 from flask import send_from_directory
 
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('.', 'sw.js')
+
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory('static', filename)

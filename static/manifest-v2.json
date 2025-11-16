@@ -1,0 +1,20 @@
+{
+  "name": "HUFSpace",
+  "short_name": "HUFSpace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#002d56",
+  "icons": [
+    {
+      "src": "/static/Logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/Logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
