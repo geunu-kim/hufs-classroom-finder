@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
   <meta charset="UTF-8">
   <title>HUFSpace</title>
@@ -383,48 +383,7 @@
     .use-classroom-btn:hover {
         background-color: #dbeaff;
     }
-@media (max-width: 768px) {
-    h1 {
-        font-size: 36px;
-    }
-    p.subtitle {
-        font-size: 16px;
-    }
-    .content {
-        padding: 20px 15px; /* 좌우 여백을 조금 더 줍니다 */
-    }
-    .search-container {
-        padding: 25px; /* 내부 여백을 넉넉하게 조정합니다 */
-    }
-    .controls {
-        grid-template-columns: 1fr;
-        gap: 1.5rem; /* 컨트롤 그룹 사이의 간격을 늘립니다 */
-    }
-    /* 시간 선택 드롭다운을 위한 스타일 */
-    .controls .control-group > div[style*="display: flex"] {
-        flex-wrap: wrap; /* 화면이 좁아지면 아래로 줄바꿈되도록 합니다 */
-    }
-    #building-checkboxes {
-        gap: 0.75rem; /* 건물 버튼 사이의 간격을 조정합니다 */
-    }
-    .building-card {
-        /* 2열 레이아웃을 유지하되, 최소 너비를 지정하여 더 유연하게 만듭니다 */
-        flex-basis: calc(50% - 0.5rem);
-        padding: 12px 8px; /* 버튼 내부 여백을 조정합니다 */
-        font-size: 15px; /* 폰트 크기를 살짝 조정합니다 */
-    }
-    .floor-row {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    .result-item {
-        padding: 1.2rem 1.5rem; /* 결과 아이템의 여백을 조정합니다 */
-    }
-    #share-all-btn {
-        font-size: 16px; /* 공유 버튼의 폰트 크기를 조정합니다 */
-        padding: 12px 15px;
-    }
-}
+
   </style>
 </head>
 
